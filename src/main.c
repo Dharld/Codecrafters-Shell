@@ -5,22 +5,21 @@
 int main(int argc, char *argv[]) {
   // Flush after every printf
   setbuf(stdout, NULL);
-
-  // Uncomment this block to pass the first stage
+  
   printf("$ ");
 
   // Wait for user input
   char input[100];
-  if (fgets(input, 100, stdin) != NULL) {
+  while (fgets(input, 100, stdin)) {
     // Remove the new trailing new line
     size_t len = strlen(input);
     input[len - 1] = '\0';
 
     printf("%s: command not found\n", input);
-  } else {
-    printf("Error reading input\n");
-  }; 
 
+    printf("$ ");
+  }
+ 
 
   return 0;
 }
