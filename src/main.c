@@ -172,6 +172,8 @@ void executeCommand(Command cmd) {
         printf("%s is a shell builtin\n", cmdName);
       } else {
         char* path = checkCommand(cmdName);
+        printf("This is the path: %s\n", path);
+
         if (path == NULL) {
           printf("%s: not found\n", cmdName);
         } else {
