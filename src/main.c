@@ -94,6 +94,35 @@ Command parseCommand(char* input) {
   return cmd;
 }
 
+char* checkCommand(char* cmdName) {
+  char* path = getenv("PATH");
+  
+  // Check if the path is present
+  if (path == NULL) {
+    return NULL;
+  }
+
+  char* pathCopy = strdup(path);
+  char* dir = strtok(pathCopy, ":");
+
+  while (dir != NULL) {
+    char fullPath[1024];
+    snprintf(fullPath, sizeof(fullPath), "%s/%s", dir, cmdName);
+    FILE* file = fopen(fullPath, "r");
+
+    if (file != NULL) {
+      fclose(file);
+      free(pathCopy);
+      char* result = strdup(fullPath);
+      return result;
+    }
+
+    dir = strtok(pathCopy, ":");
+  }
+
+  free(pathCopy);
+  return NULL;
+}
 void executeCommand(Command cmd) {
   // printf("This is the command   type: %d, name: %s\n", cmd.type, cmd.name);
   switch(cmd.type) {
@@ -128,7 +157,7 @@ void executeCommand(Command cmd) {
       char* cmdName = cmd.args[1];
 
       // Define the built-in
-      char* builtIns[] = {"exit", "echo", "type", "cat", NULL};
+      char* builtIns[] = {"exit", "echo", "type", NULL};
       
       bool found = false;
       for (int i = 0; builtIns[i] != NULL; i++) {
@@ -138,13 +167,16 @@ void executeCommand(Command cmd) {
         }
       }
 
-      char* path = getenv("PATH");
-      printf("This is the path: %s\n", path);
 
       if(found) {
         printf("%s is a shell builtin\n", cmdName);
       } else {
-        printf("%s: not found\n", cmdName);
+        char* path = checkCommand(cmdName);
+        if (path == NULL) {
+          printf("%s: not found\n", cmdName);
+        } else {
+          printf("%s is %s", cmdName, path);
+        }
       }
 
       break;
