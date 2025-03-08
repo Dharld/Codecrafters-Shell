@@ -141,6 +141,8 @@ void executeCommand(Command cmd) {
       if(found) {
         printf("%s is a shell builtin\n", cmdName);
       } else {
+        char* path = getenv("PATH");
+        printf("This is the path: %s\n", path);
         printf("%s: not found\n", cmdName);
       }
 
