@@ -11,8 +11,11 @@ int exitStatus = 1;
 typedef enum {
   CMD_NONE = 0,
   CMD_EXIT,
-  CMD_ECHO
+  CMD_ECHO,
+  CMD_TYPE
 } CommandType;
+
+
 
 typedef struct {
   CommandType type;
@@ -83,6 +86,8 @@ Command parseCommand(char* input) {
       cmd.type = CMD_EXIT;
     } else if(strcmp(cmd.name, "echo") == 0) {
       cmd.type = CMD_ECHO;
+    } else if(strcmp(cmd.name, "type") == 0) {
+      cmd.type = CMD_TYPE;
     }
   }
 
@@ -96,6 +101,7 @@ void executeCommand(Command cmd) {
       continueRPL = false;
       exitStatus = atoi(cmd.args[1]);
       // printf("Status code: %d\n", exitStatus)
+      exit(exitStatus);
       break;
 
     case CMD_ECHO:
@@ -111,6 +117,33 @@ void executeCommand(Command cmd) {
 
       // Go to the line
       printf("\n");
+      break;
+
+    case CMD_TYPE:
+      if (cmd.argc == 1) {
+        printf("Error: Not enough arguments -> type --args\n");
+        return;
+      }
+      
+      char* cmdName = cmd.args[1];
+
+      // Define the built-in
+      char* builtIns[] = {"exit", "echo", "type", "cat", NULL};
+      
+      bool found = false;
+      for (int i = 0; builtIns[i] != NULL; i++) {
+        if (strcmp(cmdName, builtIns[i]) == 0) {
+          found = true;
+          break;
+        }
+      }
+
+      if(found) {
+        printf("%s is a shell builtin\n", cmdName);
+      } else {
+        printf("%s: not found\n", cmdName);
+      }
+
       break;
   };
 }
