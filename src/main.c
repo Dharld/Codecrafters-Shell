@@ -117,7 +117,7 @@ char* checkCommand(char* cmdName) {
       return result;
     }
 
-    dir = strtok(pathCopy, ":");
+    dir = strtok(NULL, ":");
   }
 
   free(pathCopy);
