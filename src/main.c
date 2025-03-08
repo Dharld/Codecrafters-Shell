@@ -10,7 +10,8 @@ int exitStatus = 1;
 
 typedef enum {
   CMD_NONE = 0,
-  CMD_EXIT
+  CMD_EXIT,
+  CMD_ECHO
 } CommandType;
 
 typedef struct {
@@ -80,6 +81,8 @@ Command parseCommand(char* input) {
   if(cmd.name != NULL) {
     if (strcmp(cmd.name, "exit") == 0) {
       cmd.type = CMD_EXIT;
+    } else if(strcmp(cmd.name, "echo") == 0) {
+      cmd.type = CMD_ECHO;
     }
   }
 
@@ -93,6 +96,21 @@ void executeCommand(Command cmd) {
       continueRPL = false;
       exitStatus = atoi(cmd.args[1]);
       // printf("Status code: %d\n", exitStatus)
+      break;
+
+    case CMD_ECHO:
+      if (cmd.argc == 1) {
+        printf("Error: Not enough arguments -> exit --args\n");
+        return;
+      }
+
+      // Print all the arguments of the command
+      for(int i = 1; i < cmd.argc; i++) {
+        printf("%s ", cmd.args[i]);
+      }
+
+      // Go to the line
+      printf("\n");
       break;
   };
 }
