@@ -176,7 +176,7 @@ void executeCommand(Command cmd) {
         if (path == NULL) {
           printf("%s: not found\n", cmdName);
         } else {
-          printf("%s is %s", cmdName, path);
+          printf("%s is %s\n", cmdName, path);
         }
       }
 
