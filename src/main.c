@@ -6,6 +6,7 @@
 #define MAX_TOKENS 64 // Maximum number of tokens
 
 bool continueRPL = true;
+int exitStatus = 1;
 
 typedef enum {
   CMD_NONE = 0,
@@ -90,6 +91,8 @@ void executeCommand(Command cmd) {
   switch(cmd.type) {
     case CMD_EXIT:
       continueRPL = false;
+      exitStatus = atoi(cmd.args[1]);
+      printf("Status code: %d\n", exitStatus);
       break;
   };
 }
@@ -103,7 +106,7 @@ int main(int argc, char *argv[]) {
   // Wait for user input
   char input[100];
 
-  while (fgets(input, 100, stdin) && continueRPL) {
+  while (continueRPL && fgets(input, 100, stdin)) {
     // Remove the new trailing new line
     size_t len = strlen(input);
     input[len - 1] = '\0';
@@ -116,9 +119,10 @@ int main(int argc, char *argv[]) {
       executeCommand(cmd);
     }
     
-    printf("$ ");
+    if (continueRPL)
+      printf("$ ");
   }
  
 
-  return 0;
+  return exitStatus;
 }
