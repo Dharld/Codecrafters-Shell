@@ -92,7 +92,7 @@ void executeCommand(Command cmd) {
     case CMD_EXIT:
       continueRPL = false;
       exitStatus = atoi(cmd.args[1]);
-      printf("Status code: %d\n", exitStatus);
+      // printf("Status code: %d\n", exitStatus)
       break;
   };
 }
