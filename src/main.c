@@ -90,7 +90,7 @@ Command parseCommand(char* input) {
 }
 
 void executeCommand(Command cmd) {
-  // printf("This is the command  type: %d, name: %s\n", cmd.type, cmd.name);
+  // printf("This is the command   type: %d, name: %s\n", cmd.type, cmd.name);
   switch(cmd.type) {
     case CMD_EXIT:
       continueRPL = false;
