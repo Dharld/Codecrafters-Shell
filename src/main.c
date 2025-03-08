@@ -1,6 +1,98 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
+
+#define MAX_TOKENS 64 // Maximum number of tokens
+
+bool continueRPL = true;
+
+typedef enum {
+  CMD_NONE = 0,
+  CMD_EXIT
+} CommandType;
+
+typedef struct {
+  CommandType type;
+  char* name;
+  char** args;
+  int argc;
+} Command;
+
+// Method to parse the command
+
+Command parseCommand(char* input) {
+  // Initialize command object
+  Command cmd;
+
+  cmd.type = CMD_NONE;
+  cmd.name = NULL;
+  cmd.args = NULL;
+  cmd.argc = 0;
+
+  char* strCopy = strdup(input);
+  if (strCopy == NULL) {
+    fprintf(stderr, "Memory allocation failed!\n");
+    return cmd;  
+  }
+
+  // Tokenize the input
+  char* token;
+  char* tokens[MAX_TOKENS];  // Assume MAX_TOKENS is defined
+  int tokenCount = 0;
+
+  // Read the first token as the token name
+  token = strtok(strCopy, " \t\n");
+  //  printf("%s is the current token\n", token);
+
+  if (token == NULL) {
+    free(strCopy);
+    return cmd;
+  }
+
+  cmd.name = token;
+  tokens[tokenCount++] = token;
+
+  while ((token = strtok(NULL, " \t\n")) != NULL &&  tokenCount < MAX_TOKENS) {
+    tokens[tokenCount++] = token;
+  }
+
+  // Null terminate the token array
+  tokens[tokenCount] = NULL;
+
+  // Store all the arguments
+  cmd.args = malloc(tokenCount * sizeof(char*));
+
+  if(cmd.args == NULL) {
+    fprintf(stderr, "Memory allocation failed\n");
+    free(strCopy);
+    return cmd;
+  }
+
+  for (int i = 0; i < tokenCount; i++) {
+    cmd.args[i] = tokens[i];
+  }
+
+  cmd.argc = tokenCount;
+
+  // Parse the input name
+  if(cmd.name != NULL) {
+    if (strcmp(cmd.name, "exit") == 0) {
+      cmd.type = CMD_EXIT;
+    }
+  }
+
+  return cmd;
+}
+
+void executeCommand(Command cmd) {
+  // printf("This is the command type: %d, name: %s\n", cmd.type, cmd.name);
+  switch(cmd.type) {
+    case CMD_EXIT:
+      continueRPL = false;
+      break;
+  };
+}
 
 int main(int argc, char *argv[]) {
   // Flush after every printf
@@ -10,13 +102,20 @@ int main(int argc, char *argv[]) {
 
   // Wait for user input
   char input[100];
-  while (fgets(input, 100, stdin)) {
+
+  while (fgets(input, 100, stdin) && continueRPL) {
     // Remove the new trailing new line
     size_t len = strlen(input);
     input[len - 1] = '\0';
 
-    printf("%s: command not found\n", input);
+    Command cmd = parseCommand(input);
 
+    if(cmd.type == CMD_NONE) {
+      printf("%s: command not found\n", input);
+    } else {
+      executeCommand(cmd);
+    }
+    
     printf("$ ");
   }
  
