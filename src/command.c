@@ -144,7 +144,7 @@ void executeCommand(Command cmd) {
       
       char* cmdName = cmd.args[1];
 
-      char* builtIns[] = {"exit", "echo", "type", NULL};
+      char* builtIns[] = {"exit", "echo", "type", "pwd", NULL};
       bool found = false;
       for (int i = 0; builtIns[i] != NULL; i++) {
         if (strcmp(cmdName, builtIns[i]) == 0) {
