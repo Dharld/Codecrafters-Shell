@@ -4,10 +4,31 @@
 #include <stdbool.h>
 #include <unistd.h>   // for fork, execvp
 #include <sys/wait.h> // for waitpid
+#include <ctype.h>
 #include "command.h"
 
 bool continueRPL = true;
 int exitStatus = 1;
+
+CommandType getCommandType(char* path) {
+  if (path == NULL) {
+    return CMD_NONE;
+  }  
+  if (strcmp("exit", path) == 0) {
+    return CMD_EXIT;
+  } else if (strcmp("echo", path) == 0) {
+    return CMD_ECHO;
+  } else if (strcmp("type", path) == 0) {
+    return CMD_TYPE;
+  } else if (strcmp("pwd", path) == 0) {
+    return CMD_PWD;
+  } else if (strcmp("cd", path) == 0) {
+    return CMD_CD;
+  } else {
+    return CMD_EXTERNAL;
+  }
+}
+
 
 Command parseCommand(char* input) {
   Command cmd;
@@ -16,63 +37,68 @@ Command parseCommand(char* input) {
   cmd.args = NULL;
   cmd.argc = 0;
 
-  char* strCopy = strdup(input);
-  if (strCopy == NULL) {
-    fprintf(stderr, "Memory allocation failed!\n");
-    return cmd;
-  }
-
-  char* token;
+  
   char* tokens[MAX_TOKENS];
   int tokenCount = 0;
+  int index = 0;
+  
+  while(index < strlen(input)) {
+    char ch = input[index];
 
-  token = strtok(strCopy, " \t\n");
+    if(ch == '\'') {
+      // Skip the start character
+      index++;
 
-  if (token == NULL) {
-    free(strCopy);
-    return cmd;
-  }
+      // Collect the word
+      char token[1024];
+      int i = 0;
+      
+      while(index < strlen(input) && input[index] == '\'') {
+        token[i++] = input[index++];
+      }
+      token[i] = '\0';
+    
+      // Skip the closing quote if present
+      if (index < strlen(input) && input[index] == '\'') {
+        index++;
+      }
 
-  cmd.name = token;
-  tokens[tokenCount++] = token;
-
-  while ((token = strtok(NULL, " \t\n")) != NULL && tokenCount < MAX_TOKENS) {
-    tokens[tokenCount++] = token;
-  }
-
-  tokens[tokenCount] = NULL;
-  cmd.args = malloc(tokenCount * sizeof(char*));
-
-  if(cmd.args == NULL) {
-    fprintf(stderr, "Memory allocation failed\n");
-    free(strCopy);
-    return cmd;
-  }
-
-  for (int i = 0; i < tokenCount; i++) {
-    cmd.args[i] = tokens[i];
-  }
-
-  cmd.argc = tokenCount;
-
-  if (cmd.name != NULL) {
-    if (strcmp(cmd.name, "exit") == 0) {
-      cmd.type = CMD_EXIT;
-    } else if(strcmp(cmd.name, "echo") == 0) {
-      cmd.type = CMD_ECHO;
-    } else if(strcmp(cmd.name, "type") == 0) {
-      cmd.type = CMD_TYPE;
+      // Store the current token 
+      tokens[tokenCount++] = strdup(token);
     } 
-    else if(strcmp(cmd.name, "pwd") == 0) {
-      cmd.type = CMD_PWD;
-    }
-    else if(strcmp(cmd.name, "cd") == 0) {
-      cmd.type = CMD_CD;
+    else if (isspace(ch)) {
+        // Skip whitespace
+        index++;
     }
     else {
-      cmd.type = CMD_EXTERNAL;
+        // Collect a regular token (non-whitespace characters)
+        char token[1024];
+        int i = 0;
+        
+        while (index < strlen(input) && !isspace(input[index]) && input[index] != '\'') {
+            token[i++] = input[index++];
+        }
+        
+        token[i] = '\0';
+        tokens[tokenCount++] = strdup(token);
     }
+
   }
+ 
+  tokens[tokenCount] = NULL;
+  
+  cmd.name = tokens[0];
+  cmd.argc = tokenCount; 
+  cmd.type = getCommandType(cmd.name);
+  
+  cmd.args = malloc(tokenCount * sizeof(char*));
+
+  int count = 0;
+  for(int i = 0; tokens[i] != NULL; i++) {
+    cmd.args[i] = tokens[i];
+    count++;
+  }
+
 
   return cmd;
 }
