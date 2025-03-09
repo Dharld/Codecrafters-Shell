@@ -116,16 +116,16 @@ void printWorkingDirectory() {
   }
 }
 
-int changeDirectory(char* path) {
-  if (path == NULL) {
-        // No path provided, go to HOME
-        path = getenv("HOME");
-        if (path == NULL) {
-            return -1; // Error: HOME not set
-        }
+
+int changeDirectory(char* path) { 
+  if (path == NULL) { // No path provided, go to HOME
+    path = getenv("HOME");
+    if (path == NULL) {
+      return -1; // Error: HOME not set
     }
+  }
     
-    return chdir(path); // Returns 0 on success, -1 on error
+  return chdir(path); // Returns 0 on success, -1 on error
 }
 
 void executeCommand(Command cmd) {
@@ -189,7 +189,7 @@ void executeCommand(Command cmd) {
 
       char* path = cmd.args[1];
       if(changeDirectory(path) < 0) {
-        fprintf(stderr, "cd: %s No such file or directory\n", path);
+        fprintf(stderr, "cd: %s: No such file or directory\n", path);
         return;
       }
       break;
