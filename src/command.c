@@ -67,7 +67,7 @@ Command parseCommand(char* input) {
       cmd.type = CMD_PWD;
     }
     else if(strcmp(cmd.name, "cd") == 0) {
-      cmd.type = CMD_CD,:
+      cmd.type = CMD_CD;
     }
     else {
       cmd.type = CMD_EXTERNAL;
