@@ -118,7 +118,7 @@ void printWorkingDirectory() {
 
 
 int changeDirectory(char* path) { 
-  if (path == NULL) { // No path provided, go to HOME
+  if (path == NULL || strcmp(path, "~") == 0) { // No path provided, go to HOME
     path = getenv("HOME");
     if (path == NULL) {
       return -1; // Error: HOME not set
