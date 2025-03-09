@@ -49,7 +49,7 @@ Command parseCommand(char* input) {
     return cmd;
   }
 
-  for (int i = 0; i < tokenCount; i++) {
+  for (int i = 1; i < tokenCount; i++) {
     cmd.args[i] = tokens[i];
   }
 
@@ -103,7 +103,7 @@ void executeCommand(Command cmd) {
   switch(cmd.type) {
     case CMD_EXIT:
       continueRPL = false;
-      exitStatus = atoi(cmd.args[1]);
+      exitStatus = atoi(cmd.args[0]);
       exit(exitStatus);
       break;
 
@@ -113,7 +113,7 @@ void executeCommand(Command cmd) {
         return;
       }
 
-      for(int i = 1; i < cmd.argc; i++) {
+      for(int i = 0; i < cmd.argc; i++) {
         printf("%s ", cmd.args[i]);
       }
       printf("\n");
@@ -125,7 +125,7 @@ void executeCommand(Command cmd) {
         return;
       }
       
-      char* cmdName = cmd.args[1];
+      char* cmdName = cmd.args[0];
 
       char* builtIns[] = {"exit", "echo", "type", NULL};
       bool found = false;
@@ -153,7 +153,7 @@ void executeCommand(Command cmd) {
       
       if (pid == -1) {
         // Fork failed
-        printf(stderr, "Fork failed.");
+        fprintf(stderr, "Fork failed.");
       } else if (pid == 0) {
         // Child process
         execvp(cmd.name, cmd.args);
