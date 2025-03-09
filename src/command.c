@@ -110,7 +110,7 @@ void printWorkingDirectory() {
   char currentDir[PATH_MAX];
 
   if(getcwd(currentDir, sizeof(currentDir)) != NULL) {
-    printf("%s\n", cwd);
+    printf("%s\n", currentDir);
   } else {
     fprintf(stderr, "Impossible to print the current working directory.\n")
   }
