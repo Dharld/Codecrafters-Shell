@@ -116,6 +116,18 @@ void printWorkingDirectory() {
   }
 }
 
+int changeDirectory(char* path) {
+  if (path == NULL) {
+        // No path provided, go to HOME
+        path = getenv("HOME");
+        if (path == NULL) {
+            return -1; // Error: HOME not set
+        }
+    }
+    
+    return chdir(path); // Returns 0 on success, -1 on error
+}
+
 void executeCommand(Command cmd) {
   switch(cmd.type) {
     case CMD_EXIT:
@@ -168,6 +180,20 @@ void executeCommand(Command cmd) {
     case CMD_PWD:
       printWorkingDirectory();
       break;
+    
+    case CMD_CD:
+      if(cmd.argc == 1) {
+        printf("Error: Not enough arguments -> cd --path\n");
+        return;
+      }
+
+      char* path = cmd.args[1];
+      if(changeDirectory(path) < 0) {
+        fprintf(stderr, "cd: %s No such file or directory\n", path);
+        return;
+      }
+      break;
+
 
     case CMD_EXTERNAL:
       pid_t pid = fork();

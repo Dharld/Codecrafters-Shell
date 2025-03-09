@@ -6,6 +6,7 @@
 #define MAX_TOKENS 64 // Maximum number of tokens
 #define PATH_MAX 1024
 
+// Type definition
 typedef enum {
   CMD_NONE = 0,
   CMD_EXIT,
@@ -23,10 +24,12 @@ typedef struct {
   int argc;
 } Command;
 
+// Function headers
 Command parseCommand(char* input);
 void executeCommand(Command cmd);
 char* checkCommand(char* cmdName);
 void printWorkingDirectory();
+int changeDirectory(char* path);
 
 extern bool continueRPL;
 extern int exitStatus;
