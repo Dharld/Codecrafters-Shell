@@ -53,11 +53,21 @@ Command parseCommand(char* input) {
       char token[1024];
       int i = 0;
       
-      while(index < strlen(input) && input[index] != '\'') {
+      while(index < strlen(input)) {
         token[i++] = input[index++];
+
+        // Case of 'hello''world' -> helloworld
+        if (index < strlen(input) && input[index] == '\'') {
+          if (index + 1 < strlen(input) && input[index + 1] == '\'') {
+            index = index + 2;
+            continue;
+          }
+          
+          break;
+        }     
       }
       token[i] = '\0';
-    
+   
       // Skip the closing quote if present
       if (index < strlen(input) && input[index] == '\'') {
         index++;
