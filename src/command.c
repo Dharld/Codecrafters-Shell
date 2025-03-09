@@ -53,7 +53,7 @@ Command parseCommand(char* input) {
       char token[1024];
       int i = 0;
       
-      while(index < strlen(input) && input[index] == '\'') {
+      while(index < strlen(input) && input[index] != '\'') {
         token[i++] = input[index++];
       }
       token[i] = '\0';
