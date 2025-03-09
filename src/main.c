@@ -3,11 +3,6 @@
 #include <string.h>
 #include "command.h"
 
-
-// Method to parse the command
-<<<<<<< HEAD
-=======
-
 Command parseCommand(char* input) {
   // Initialize command object
   Command cmd;
@@ -166,7 +161,6 @@ void executeCommand(Command cmd) {
   };
 }
 
->>>>>>> parent of f81f615 (Fix)
 int main(int argc, char *argv[]) {
   // Flush after every printf
   setbuf(stdout, NULL);
