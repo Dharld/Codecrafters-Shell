@@ -2,9 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-#include "command.h"
 #include <unistd.h>   // for fork, execvp
 #include <sys/wait.h> // for waitpid
+#include "command.h"
 
 bool continueRPL = true;
 int exitStatus = 1;
@@ -62,7 +62,14 @@ Command parseCommand(char* input) {
       cmd.type = CMD_ECHO;
     } else if(strcmp(cmd.name, "type") == 0) {
       cmd.type = CMD_TYPE;
-    } else {
+    } 
+    else if(strcmp(cmd.name, "pwd") == 0) {
+      cmd.type = CMD_PWD;
+    }
+    else if(strcmp(cmd.name, "cd") == 0) {
+      cmd.type = CMD_CD,:
+    }
+    else {
       cmd.type = CMD_EXTERNAL;
     }
   }
@@ -97,6 +104,16 @@ char* checkCommand(char* cmdName) {
 
   free(pathCopy);
   return NULL;
+}
+
+void printWorkingDirectory() {
+  char currentDir[PATH_MAX];
+
+  if(getcwd(currentDir, sizeof(currentDir)) != NULL) {
+    printf("%s\n", cwd);
+  } else {
+    fprintf(stderr, "Impossible to print the current working directory.\n")
+  }
 }
 
 void executeCommand(Command cmd) {
@@ -146,6 +163,10 @@ void executeCommand(Command cmd) {
           printf("%s is %s\n", cmdName, path);
         }
       }
+      break;
+    
+    case CMD_PWD:
+      printWorkingDirectory();
       break;
 
     case CMD_EXTERNAL:
