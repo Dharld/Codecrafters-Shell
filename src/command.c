@@ -97,13 +97,7 @@ void handleDoubleQuote(int* index, char* input, char** tokens, int* tokenCount) 
         else {
             token[i++] = input[*index];
             (*index)++;
-        }
-        
-        // Safety check for buffer overflow
-        if (i >= 1023) {
-            fprintf(stderr, "Token too long, truncating\n");
-            break;
-        }
+        } 
     }
     
     token[i] = '\0';
