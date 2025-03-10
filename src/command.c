@@ -29,6 +29,92 @@ CommandType getCommandType(char* path) {
   }
 }
 
+void handleSingleQuote(int* index, char* input, char** tokens, int* tokenCount) {
+    // Skip the start character
+    (*index)++;  // Need parentheses around *index
+    
+    // Collect the word
+    char token[1024];
+    int i = 0;
+    
+    while(*index < strlen(input)) {  // Dereferencing index
+        token[i++] = input[*index];  // Dereferencing index
+        (*index)++;  // Increment after using
+        
+        // Case of 'hello''world' -> helloworld
+        if (*index < strlen(input) && input[*index] == '\'') {
+            if (*index + 1 < strlen(input) && input[*index + 1] == '\'') {
+                *index = *index + 2;
+                continue;
+            }
+            
+            break;
+        }     
+    }
+    token[i] = '\0';
+    
+    // Skip the closing quote if present
+    if (*index < strlen(input) && input[*index] == '\'') {
+        (*index)++;
+    }
+    
+    // You need to add this to actually save the token
+    tokens[*tokenCount] = strdup(token);
+    (*tokenCount)++;
+}
+
+void handleDoubleQuote(int* index, char* input, char** tokens, int* tokenCount) {
+    // Skip the start character
+    (*index)++;
+    
+    // Collect the word
+    char token[1024];
+    int i = 0;
+    
+    while(*index < strlen(input)) {
+        // Check for closing quote
+        if (input[*index] == '"') {
+            // Check for escaped quote
+            if (*index + 1 < strlen(input) && input[*index + 1] == '"') {
+                // Include one quote character and skip both
+                token[i++] = '"';
+                *index += 2;
+            } else {
+                // End of quoted string
+                (*index)++;
+                break;
+            }
+        }
+        // Handle escape sequences
+        else if (input[*index] == '\\' && *index + 1 < strlen(input)) {
+            // Check for special escape characters
+            if (input[*index + 1] == '"' || input[*index + 1] == '$' || input[*index + 1] == '\\') {
+                token[i++] = input[*index + 1];
+                *index += 2;
+            } else {
+                // For other escapes, include both the backslash and the character
+                token[i++] = '\\';
+                token[i++] = input[*index + 1];
+                *index += 2;
+            }
+        }
+        // Regular character
+        else {
+            token[i++] = input[*index];
+            (*index)++;
+        }
+        
+        // Safety check for buffer overflow
+        if (i >= 1023) {
+            fprintf(stderr, "Token too long, truncating\n");
+            break;
+        }
+    }
+    
+    token[i] = '\0';
+    tokens[*tokenCount] = strdup(token);
+    (*tokenCount)++;
+}
 
 Command parseCommand(char* input) {
   Command cmd;
@@ -46,51 +132,26 @@ Command parseCommand(char* input) {
     char ch = input[index];
 
     if(ch == '\'') {
-      // Skip the start character
-      index++;
-
-      // Collect the word
-      char token[1024];
-      int i = 0;
-      
-      while(index < strlen(input)) {
-        token[i++] = input[index++];
-
-        // Case of 'hello''world' -> helloworld
-        if (index < strlen(input) && input[index] == '\'') {
-          if (index + 1 < strlen(input) && input[index + 1] == '\'') {
-            index = index + 2;
-            continue;
-          }
-          
-          break;
-        }     
-      }
-      token[i] = '\0';
-   
-      // Skip the closing quote if present
-      if (index < strlen(input) && input[index] == '\'') {
-        index++;
-      }
-
-      // Store the current token 
-      tokens[tokenCount++] = strdup(token);
+      handleSingleQuote(&index, input, tokens, &tokenCount);
+    }
+    else if(ch == '"') {
+      handleDoubleQuote(&index, input, tokens, &tokenCount);
     } 
     else if (isspace(ch)) {
-        // Skip whitespace
-        index++;
+      // Skip whitespace
+      index++;
     }
     else {
-        // Collect a regular token (non-whitespace characters)
-        char token[1024];
-        int i = 0;
+      // Collect a regular token (non-whitespace characters)
+      char token[1024];
+      int i = 0;
         
-        while (index < strlen(input) && !isspace(input[index]) && input[index] != '\'') {
-            token[i++] = input[index++];
-        }
+      while (index < strlen(input) && !isspace(input[index]) && input[index] != '\'') {
+        token[i++] = input[index++];
+      }
         
-        token[i] = '\0';
-        tokens[tokenCount++] = strdup(token);
+      token[i] = '\0';
+      tokens[tokenCount++] = strdup(token);
     }
 
   }
