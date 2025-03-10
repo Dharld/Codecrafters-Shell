@@ -229,7 +229,7 @@ void executeCommand(Command cmd) {
       }
 
       for(int i = 1; i < cmd.argc; i++) {
-        printf("%s ", cmd.args[i]);
+        printf("%s", cmd.args[i]);
       }
       printf("\n");
       break;
