@@ -74,16 +74,11 @@ void handleDoubleQuote(int* index, char* input, char** tokens, int* tokenCount) 
     while(*index < strlen(input)) {
         // Check for closing quote
         if (input[*index] == '"') {
-            // Check for escaped quote
             if (*index + 1 < strlen(input) && input[*index + 1] == '"') {
-                // Include one quote character and skip both
-                token[i++] = '"';
-                *index += 2;
-            } else {
-                // End of quoted string
-                (*index)++;
-                break;
+                *index = *index + 2;
+                continue;
             }
+            break;      
         }
         // Handle escape sequences
         else if (input[*index] == '\\' && *index + 1 < strlen(input)) {
