@@ -78,6 +78,8 @@ void handleDoubleQuote(int* index, char* input, char** tokens, int* tokenCount) 
                 *index = *index + 2;
                 continue;
             }
+            // Skip the current character
+            *index++;
             break;      
         }
         // Handle escape sequences
