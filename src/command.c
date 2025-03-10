@@ -79,7 +79,7 @@ void handleDoubleQuote(int* index, char* input, char** tokens, int* tokenCount) 
                 continue;
             }
             // Skip the current character
-            *index++;
+            (*index)++;
             break;      
         }
         // Handle escape sequences
@@ -137,7 +137,7 @@ Command parseCommand(char* input) {
       char token[1024];
       int i = 0;
         
-      while (index < strlen(input) && !isspace(input[index]) && input[index] != '\'') {
+      while (index < strlen(input) && !isspace(input[index]) && input[index] != '\'' && input[index] != '"') {
         token[i++] = input[index++];
       }
         
@@ -231,7 +231,7 @@ void executeCommand(Command cmd) {
       }
 
       for(int i = 1; i < cmd.argc; i++) {
-        printf("%s", cmd.args[i]);
+        printf("%s ", cmd.args[i]);
       }
       printf("\n");
       break;
