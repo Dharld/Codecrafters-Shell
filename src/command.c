@@ -314,7 +314,7 @@ void executeWithRedirection(Command cmd, void (*executeFunc)(Command)) {
     }
     
     // Redirect stdout to the file
-    if (dup2(fd, STDOUT_FILENO) < 0) {
+    if (dup2(fd, STDERR_FILENO) < 0) {
         perror("dup2");
         close(fd);
         close(savedStdErr);
