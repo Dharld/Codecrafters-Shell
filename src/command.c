@@ -192,7 +192,7 @@ Command parseCommand(char* input) {
 
   cmd.argc = i;
 
-  cmd.args = malloc(cmd.argc * sizeof(char*));
+  cmd.args = malloc((cmd.argc + 1) * sizeof(char*));
   for(int i = 0; i < cmd.argc; i++) {
     cmd.args[i] = tokens[i];
   }
