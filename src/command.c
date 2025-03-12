@@ -179,7 +179,15 @@ Command parseCommand(char* input) {
   // Check if there's a token for redirection
   int i = 0;
   for(; i < tokenCount; i++) {
-    if (strcmp(">", tokens[i]) == 0 || strcmp("1>", tokens[i]) == 0) {
+    if (strcmp("2>", tokens[i]) == 0) {
+      cmd.hasErrorRedirection = true;
+      // The next element is the error output file
+      if (i + 1 < tokenCount) {
+        cmd.errorOutputFile = strdup(tokens[i + 1]);
+      }
+      break;
+    }
+    else if (strcmp(">", tokens[i]) == 0 || strcmp("1>", tokens[i]) == 0) {
       cmd.hasOutputRedirection = true;
 
       // The next element is the output file
@@ -188,16 +196,7 @@ Command parseCommand(char* input) {
       }
       
       break;
-    }
-    else if (strcmp("2>", tokens[i]) == 0) {
-      cmd.hasErrorRedirection = true;
-      // The next element is the error output file
-      if (i + 1 < tokenCount) {
-        cmd.errorOutputFile = strdup(tokens[i + 1]);
-      }
-      break;
-    }
- 
+    } 
   }
 
   cmd.argc = i;
