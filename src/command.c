@@ -121,7 +121,8 @@ Command parseCommand(char* input) {
   
   while(index < strlen(input)) {
     char ch = input[index];
-
+    
+    
     if(ch == '\'') {
       handleSingleQuote(&index, input, tokens, &tokenCount);
     }
@@ -132,19 +133,32 @@ Command parseCommand(char* input) {
       // Skip whitespace
       index++;
     }
+    // In your parseCommand function, modify the regular token collection:
     else {
-      // Collect a regular token (non-whitespace characters)
-      char token[1024];
-      int i = 0;
+        // Collect a regular token (non-whitespace characters)
+        char token[1024];
+        int i = 0;
         
-      while (index < strlen(input) && !isspace(input[index]) && input[index] != '\'' && input[index] != '"') {
-        token[i++] = input[index++];
-      }
+        while (index < strlen(input)) {
+            // If we hit space or quote without a backslash, end the token
+            if (isspace(input[index]) || input[index] == '\'' || input[index] == '"') {
+                break;
+            }
+            
+            // Handle backslash - escape the next character
+            if (input[index] == '\\' && index + 1 < strlen(input)) {
+                index++; // Skip the backslash
+                token[i++] = input[index++]; // Add escaped character
+                continue;
+            }
+            
+            // Regular character
+            token[i++] = input[index++];
+        }
         
-      token[i] = '\0';
-      tokens[tokenCount++] = strdup(token);
-    }
-
+        token[i] = '\0';
+        tokens[tokenCount++] = strdup(token);
+    } 
   }
  
   tokens[tokenCount] = NULL;
