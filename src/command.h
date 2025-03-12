@@ -22,6 +22,10 @@ typedef struct {
   char* name;
   char** args;
   int argc;
+
+  // For redirection
+  bool hasOutputRedirection;
+  char *outputFile;
 } Command;
 
 // Function headers

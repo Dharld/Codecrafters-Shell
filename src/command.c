@@ -5,6 +5,7 @@
 #include <unistd.h>   // for fork, execvp
 #include <sys/wait.h> // for waitpid
 #include <ctype.h>
+#include <fcntl.h>
 #include "command.h"
 
 bool continueRPL = true;
@@ -25,7 +26,7 @@ CommandType getCommandType(char* path) {
   } else if (strcmp("cd", path) == 0) {
     return CMD_CD;
   } else {
-    return CMD_EXTERNAL;
+  return CMD_EXTERNAL;
   }
 }
 
@@ -120,7 +121,8 @@ Command parseCommand(char* input) {
   cmd.name = NULL;
   cmd.args = NULL;
   cmd.argc = 0;
-
+  cmd.hasOutputRedirection = false;
+  cmd.outputFile = NULL;
   
   char* tokens[MAX_TOKENS];
   int tokenCount = 0;
@@ -171,15 +173,28 @@ Command parseCommand(char* input) {
   tokens[tokenCount] = NULL;
   
   cmd.name = tokens[0];
-  cmd.argc = tokenCount; 
   cmd.type = getCommandType(cmd.name);
   
-  cmd.args = malloc(tokenCount * sizeof(char*));
+  // Check if there's a token for redirection
+  int i = 0;
+  for(; i < tokenCount; i++) {
+    if (strcmp(">", tokens[i]) == 0 || strcmp("1>", tokens[i]) == 0) {
+      cmd.hasOutputRedirection = true;
 
-  int count = 0;
-  for(int i = 0; tokens[i] != NULL; i++) {
+      // The next element is the output file
+      if (i + 1 < tokenCount) {
+        cmd.outputFile = strdup(tokens[i + 1]); 
+      }
+      
+      break;
+    }
+  }
+
+  cmd.argc = i;
+
+  cmd.args = malloc(cmd.argc * sizeof(char*));
+  for(int i = 0; i < cmd.argc; i++) {
     cmd.args[i] = tokens[i];
-    count++;
   }
 
 
@@ -237,6 +252,137 @@ int changeDirectory(char* path) {
   return chdir(path); // Returns 0 on success, -1 on error
 }
 
+void executeWithRedirection(Command cmd, void (*executeFunc)(Command)) {
+  if (cmd.hasOutputRedirection) {
+      // Open the file for redirection
+      int fd = open(cmd.outputFile, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+      if (fd < 0) {
+          perror("open");
+          return;
+      }
+      
+      // Save original stdout
+      int savedStdOut = dup(STDOUT_FILENO);
+      if (savedStdOut < 0) {
+          perror("dup");
+          close(fd);
+          return;
+      }
+      
+      // Redirect stdout to the file
+      if (dup2(fd, STDOUT_FILENO) < 0) {
+          perror("dup2");
+          close(fd);
+          close(savedStdOut);
+          return;
+      }
+      close(fd);  // fd is no longer needed as it's duplicated
+      
+      // Execute the command (output goes to the file)
+      executeFunc(cmd);
+      
+      // Restore original stdout
+      fflush(stdout);  // Ensure all output is written before switching
+      if (dup2(savedStdOut, STDOUT_FILENO) < 0) {
+          perror("dup2 restore");
+      }
+      close(savedStdOut);
+  } else {
+      // Execute normally without redirection
+      executeFunc(cmd);
+  }
+}
+
+// Function to execute echo command
+void executeEcho(Command cmd) {
+  if (cmd.argc == 1) {
+      printf("\n");  // Echo with no args just prints a newline
+      return;
+  }
+  
+  for(int i = 1; i < cmd.argc; i++) {
+      printf("%s", cmd.args[i]);
+      if (i < cmd.argc - 1) {
+          printf(" ");  // Add space only between arguments
+      }
+  }
+  printf("\n");
+}
+
+// For external commands
+void executeExternal(Command cmd) {
+    pid_t pid = fork();
+    
+    if (pid == -1) {
+        fprintf(stderr, "Fork failed.\n");
+    } else if (pid == 0) {
+        // Child process
+        execvp(cmd.name, cmd.args);
+        
+        // If execvp returns, it failed
+        fprintf(stderr, "%s: command not found\n", cmd.name);
+        exit(EXIT_FAILURE);
+    } else {
+        // Parent process
+        int status;
+        waitpid(pid, &status, 0);
+    }
+}
+
+// Function to execute type command
+void executeType(Command cmd) {
+    if (cmd.argc == 1) {
+        printf("Error: Not enough arguments -> type --args\n");
+        return;
+    }
+    
+    char* cmdName = cmd.args[1];
+    char* builtIns[] = {"exit", "echo", "type", "pwd", "cd", NULL};
+    bool found = false;
+    
+    for (int i = 0; builtIns[i] != NULL; i++) {
+        if (strcmp(cmdName, builtIns[i]) == 0) {
+            found = true;
+            break;
+        }
+    }
+
+    if (found) {
+        printf("%s is a shell builtin\n", cmdName);
+    } else {
+        char* path = checkCommand(cmdName);
+        if (path == NULL) {
+            printf("%s: not found\n", cmdName);
+        } else {
+            printf("%s is %s\n", cmdName, path);
+            free(path); // Don't forget to free the allocated path
+        }
+    }
+}
+
+// Function to execute pwd command
+void executePwd(Command cmd) {
+    char currentDir[PATH_MAX];
+    if(getcwd(currentDir, sizeof(currentDir)) != NULL) {
+        printf("%s\n", currentDir);
+    } else {
+        fprintf(stderr, "Impossible to print the current working directory.\n");
+    }
+}
+
+// Function to execute cd command
+void executeCd(Command cmd) {
+    if(cmd.argc == 1) {
+        printf("Error: Not enough arguments -> cd --path\n");
+        return;
+    }
+
+    char* path = cmd.args[1];
+    if(changeDirectory(path) < 0) {
+        fprintf(stderr, "cd: %s: No such file or directory\n", path);
+    }
+}
+
 void executeCommand(Command cmd) {
   switch(cmd.type) {
     case CMD_EXIT:
@@ -246,82 +392,23 @@ void executeCommand(Command cmd) {
       break;
 
     case CMD_ECHO:
-      if (cmd.argc == 1) {
-        printf("Error: Not enough arguments -> exit --args\n");
-        return;
-      }
-
-      for(int i = 1; i < cmd.argc; i++) {
-        printf("%s ", cmd.args[i]);
-      }
-      printf("\n");
+      executeWithRedirection(cmd, executeEcho);
       break;
 
     case CMD_TYPE:
-      if (cmd.argc == 1) {
-        printf("Error: Not enough arguments -> type --args\n");
-        return;
-      }
-      
-      char* cmdName = cmd.args[1];
-
-      char* builtIns[] = {"exit", "echo", "type", "pwd", NULL};
-      bool found = false;
-      for (int i = 0; builtIns[i] != NULL; i++) {
-        if (strcmp(cmdName, builtIns[i]) == 0) {
-          found = true;
-          break;
-        }
-      }
-
-      if (found) {
-        printf("%s is a shell builtin\n", cmdName);
-      } else {
-        char* path = checkCommand(cmdName);
-        if (path == NULL) {
-          printf("%s: not found\n", cmdName);
-        } else {
-          printf("%s is %s\n", cmdName, path);
-        }
-      }
-      break;
+    executeWithRedirection(cmd, executeType);
+    break;
     
     case CMD_PWD:
-      printWorkingDirectory();
-      break;
-    
+        executeWithRedirection(cmd, executePwd);
+        break;
+        
     case CMD_CD:
-      if(cmd.argc == 1) {
-        printf("Error: Not enough arguments -> cd --path\n");
-        return;
-      }
-
-      char* path = cmd.args[1];
-      if(changeDirectory(path) < 0) {
-        fprintf(stderr, "cd: %s: No such file or directory\n", path);
-        return;
-      }
-      break;
-
+        executeWithRedirection(cmd, executeCd);
+        break;
 
     case CMD_EXTERNAL:
-      pid_t pid = fork();
-      
-      if (pid == -1) {
-        // Fork failed
-        fprintf(stderr, "Fork failed.");
-      } else if (pid == 0) {
-        // Child process
-        execvp(cmd.name, cmd.args);
-        
-        // If execvp returns, it failed
-        fprintf(stderr, "%s: command not found\n", cmd.name);
-        exit(EXIT_FAILURE);
-      } else {
-        // Parent process
-        int status;
-        waitpid(pid, &status, 0);
-      }
+      executeWithRedirection(cmd, executeExternal);
       break;
   }
 }
