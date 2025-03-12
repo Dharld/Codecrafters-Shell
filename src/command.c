@@ -188,6 +188,15 @@ Command parseCommand(char* input) {
       
       break;
     }
+    else if (strcmp("2>", tokens[i]) == 0) {
+      cmd.hasErrorRedirection = true;
+      // The next element is the error output file
+      if (i + 1 < tokenCount) {
+        cmd.errorOutputFile = strdup(tokens[i + 1]);
+      }
+      break;
+    }
+ 
   }
 
   cmd.argc = i;
@@ -288,7 +297,42 @@ void executeWithRedirection(Command cmd, void (*executeFunc)(Command)) {
           perror("dup2 restore");
       }
       close(savedStdOut);
-  } else {
+  } 
+  else if(cmd.hasErrorRedirection) {
+    int fd = open(cmd.errorOutputFile, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    if (fd < 0) {
+        perror("open");
+        return;
+    }
+    
+    // Save original stdout
+    int savedStdErr = dup(STDERR_FILENO);
+    if (savedStdErr < 0) {
+        perror("dup");
+        close(fd);
+        return;
+    }
+    
+    // Redirect stdout to the file
+    if (dup2(fd, STDOUT_FILENO) < 0) {
+        perror("dup2");
+        close(fd);
+        close(savedStdErr);
+        return;
+    }
+    close(fd);  // fd is no longer needed as it's duplicated
+    
+    // Execute the command (output goes to the file)
+    executeFunc(cmd);
+    
+    // Restore original stdout
+    fflush(stdout);  // Ensure all output is written before switching
+    if (dup2(savedStdErr, STDOUT_FILENO) < 0) {
+        perror("dup2 restore");
+    }
+    close(savedStdErr);
+  }
+  else {
       // Execute normally without redirection
       executeFunc(cmd);
   }

@@ -25,7 +25,9 @@ typedef struct {
 
   // For redirection
   bool hasOutputRedirection;
+  bool hasErrorRedirection;
   char *outputFile;
+  char *errorOutputFile;
 } Command;
 
 // Function headers
