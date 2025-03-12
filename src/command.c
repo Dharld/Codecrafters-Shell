@@ -197,6 +197,7 @@ Command parseCommand(char* input) {
     cmd.args[i] = tokens[i];
   }
 
+  cmd.args[i] = NULL;
 
   return cmd;
 }
