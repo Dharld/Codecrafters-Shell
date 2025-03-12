@@ -124,6 +124,7 @@ Command parseCommand(char* input) {
   cmd.hasOutputRedirection = false;
   cmd.outputFile = NULL;
   cmd.hasErrorRedirection = false;
+  cmd.errorOutputFile = NULL;
 
   char* tokens[MAX_TOKENS];
   int tokenCount = 0;
