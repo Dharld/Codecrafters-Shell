@@ -78,6 +78,13 @@ void handleDoubleQuote(int* index, char* input, char** tokens, int* tokenCount) 
                 *index = *index + 2;
                 continue;
             }
+            
+            // Check if the next character is a literal character: "hello\"insidequotes"script\"
+            if (*index + 1 < strlen(input) && isalnum(input[*index + 1])) {
+              // Skip the current character and continue
+              (*index)++;
+              continue;
+            }
             // Skip the current character
             (*index)++;
             break;      
@@ -133,7 +140,7 @@ Command parseCommand(char* input) {
       // Skip whitespace
       index++;
     }
-    // In your parseCommand function, modify the regular token collection:
+    // In your  function, modify the regular token collection:
     else {
         // Collect a regular token (non-whitespace characters)
         char token[1024];
