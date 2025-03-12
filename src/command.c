@@ -123,7 +123,8 @@ Command parseCommand(char* input) {
   cmd.argc = 0;
   cmd.hasOutputRedirection = false;
   cmd.outputFile = NULL;
-  
+  cmd.hasErrorRedirection = false;
+
   char* tokens[MAX_TOKENS];
   int tokenCount = 0;
   int index = 0;
