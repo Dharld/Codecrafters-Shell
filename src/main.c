@@ -27,6 +27,7 @@ int main(int argc, char *argv[]) {
     
     if (continueRPL)
       printf("$ ");
+      fflush(stdout); // make sure it's displayed immediately
   }
  
 
