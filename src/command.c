@@ -318,7 +318,6 @@ void executeExternal(Command cmd) {
         fprintf(stderr, "Fork failed.\n");
     } else if (pid == 0) {
         // Child process
-        printf("PATH: %s\n", getenv("PATH"));
         execvp(cmd.name, cmd.args);
         
         // If execvp returns, it failed
