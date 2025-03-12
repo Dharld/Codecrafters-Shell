@@ -312,7 +312,6 @@ void executeEcho(Command cmd) {
 
 // For external commands
 void executeExternal(Command cmd) {
-    printf("Executing External command\n");
     pid_t pid = fork();
     
     if (pid == -1) {
