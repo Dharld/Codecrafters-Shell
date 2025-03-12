@@ -397,16 +397,16 @@ void executeCommand(Command cmd) {
       break;
 
     case CMD_TYPE:
-    executeWithRedirection(cmd, executeType);
-    break;
+      executeWithRedirection(cmd, executeType);
+      break;
     
     case CMD_PWD:
-        executeWithRedirection(cmd, executePwd);
-        break;
+      executeWithRedirection(cmd, executePwd);
+      break;
         
     case CMD_CD:
-        executeWithRedirection(cmd, executeCd);
-        break;
+      executeWithRedirection(cmd, executeCd);
+      break;
 
     case CMD_EXTERNAL:
       executeWithRedirection(cmd, executeExternal);
