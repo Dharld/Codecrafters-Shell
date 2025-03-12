@@ -26,7 +26,7 @@ CommandType getCommandType(char* path) {
   } else if (strcmp("cd", path) == 0) {
     return CMD_CD;
   } else {
-  return CMD_EXTERNAL;
+    return CMD_EXTERNAL;
   }
 }
 
@@ -311,6 +311,7 @@ void executeEcho(Command cmd) {
 
 // For external commands
 void executeExternal(Command cmd) {
+    printf("Executing External command");
     pid_t pid = fork();
     
     if (pid == -1) {
