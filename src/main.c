@@ -25,9 +25,11 @@ int main(int argc, char *argv[]) {
       executeCommand(cmd);
     }
     
-    if (continueRPL)
+    if (continueRPL) {
       printf("$ ");
       fflush(stdout); // make sure it's displayed immediately
+    }
+
   }
  
 

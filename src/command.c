@@ -186,6 +186,9 @@ Command parseCommand(char* input) {
       if (i + 1 < tokenCount) {
         cmd.errorOutputFile = strdup(tokens[i + 1]);
       }
+
+      // printf("Error redirection to the file: %s\n", cmd.errorOutputFile);
+
       break;
     }
     else if (strcmp(">", tokens[i]) == 0 || strcmp("1>", tokens[i]) == 0) {
@@ -323,12 +326,13 @@ void executeWithRedirection(Command cmd, void (*executeFunc)(Command)) {
     }
     close(fd);  // fd is no longer needed as it's duplicated
     
+    // printf("Execute with redirection\n");
     // Execute the command (output goes to the file)
     executeFunc(cmd);
     
     // Restore original stdout
-    fflush(stdout);  // Ensure all output is written before switching
-    if (dup2(savedStdErr, STDOUT_FILENO) < 0) {
+    fflush(stderr);  // Ensure all output is written before switching
+    if (dup2(savedStdErr, STDERR_FILENO) < 0) {
         perror("dup2 restore");
     }
     close(savedStdErr);
@@ -345,7 +349,8 @@ void executeEcho(Command cmd) {
       printf("\n");  // Echo with no args just prints a newline
       return;
   }
-  
+ 
+  // Iterate through each command
   for(int i = 1; i < cmd.argc; i++) {
       printf("%s", cmd.args[i]);
       if (i < cmd.argc - 1) {
