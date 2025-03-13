@@ -27,7 +27,8 @@ typedef struct {
   bool hasOutputRedirection;
   bool hasErrorRedirection;
   bool appendOutput;
-  
+  bool appendError;
+
   char *outputFile;
   char *errorOutputFile;
 } Command;

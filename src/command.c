@@ -160,6 +160,7 @@ Command parseCommand(char* input) {
   cmd.hasErrorRedirection = false;
   cmd.errorOutputFile = NULL;
   cmd.appendOutput = false;
+  cmd.appendError = false;
 
   char* tokens[MAX_TOKENS];
   int tokenCount = 0;
@@ -215,30 +216,26 @@ Command parseCommand(char* input) {
   // Check if there's a token for redirection
   int i = 0;
   for(;i < tokenCount; i++) {
-    if (strcmp("1>>", tokens[i]) == 0 || strcmp(">>", tokens[i]) == 0) {
-      cmd.appendOutput = true;
-      cmd.hasOutputRedirection = true;
-
-      // The next element is the output file
-      if (i + 1 < tokenCount) {
-        cmd.outputFile = strdup(tokens[i + 1]); 
-      }
-      
-      break;
-    }
-    else if (strcmp("2>", tokens[i]) == 0) {
+    if (strcmp("2>", tokens[i]) == 0) {
       cmd.hasErrorRedirection = true;
       // The next element is the error output file
+
+      if (strcmp("2>>", tokens[i]) == 0) {
+        cmd.appendError = true;
+      }
+
       if (i + 1 < tokenCount) {
         cmd.errorOutputFile = strdup(tokens[i + 1]);
       }
-
-      // printf("Error redirection to the file: %s\n", cmd.errorOutputFile);
 
       break;
     }
     else if (strcmp(">", tokens[i]) == 0 || strcmp("1>", tokens[i]) == 0) {
       cmd.hasOutputRedirection = true;
+      
+      if(strcmp("1>>", tokens[i]) == 0 || strcmp(">>", tokens[i]) == 0) {
+        cmd.appendOutput = true;
+      }
 
       // The next element is the output file
       if (i + 1 < tokenCount) {
@@ -358,7 +355,17 @@ void executeWithRedirection(Command cmd, void (*executeFunc)(Command)) {
       close(savedStdOut);
   } 
   else if(cmd.hasErrorRedirection) {
-    int fd = open(cmd.errorOutputFile, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    // Choose flags based on append mode
+    int flags = O_WRONLY | O_CREAT;
+    if (cmd.appendError) {
+        flags |= O_APPEND;
+    } else {
+        flags |= O_TRUNC;
+    }
+    
+    // Open the file for appending of creation
+    int fd = open(cmd.errorOutputFile, flags, 0644);
+    
     if (fd < 0) {
         perror("open");
         return;
