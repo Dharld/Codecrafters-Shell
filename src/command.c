@@ -215,35 +215,35 @@ Command parseCommand(char* input) {
   
   // Check if there's a token for redirection
   int i = 0;
-  for(;i < tokenCount; i++) {
-    if (strcmp("2>", tokens[i]) == 0) {
+  for(; i < tokenCount; i++) {
+    // Check for stderr redirection
+    if (strncmp(tokens[i], "2>", 2) == 0) {
       cmd.hasErrorRedirection = true;
-      // The next element is the error output file
-
-      if (strcmp("2>>", tokens[i]) == 0) {
+      
+      // Check if it's append mode (2>>)
+      if (strcmp(tokens[i], "2>>") == 0) {
         cmd.appendError = true;
       }
-
+      
       if (i + 1 < tokenCount) {
         cmd.errorOutputFile = strdup(tokens[i + 1]);
       }
-
       break;
     }
-    else if (strcmp(">", tokens[i]) == 0 || strcmp("1>", tokens[i]) == 0) {
+    // Check for stdout redirection
+    else if (strncmp(tokens[i], ">", 1) == 0 || strncmp(tokens[i], "1>", 2) == 0) {
       cmd.hasOutputRedirection = true;
       
-      if(strcmp("1>>", tokens[i]) == 0 || strcmp(">>", tokens[i]) == 0) {
+      // Check if it's append mode (>> or 1>>)
+      if (strcmp(tokens[i], ">>") == 0 || strcmp(tokens[i], "1>>") == 0) {
         cmd.appendOutput = true;
       }
-
-      // The next element is the output file
-      if (i + 1 < tokenCount) {
-        cmd.outputFile = strdup(tokens[i + 1]); 
-      }
       
+      if (i + 1 < tokenCount) {
+        cmd.outputFile = strdup(tokens[i + 1]);
+      }
       break;
-    } 
+    }
   }
 
   cmd.argc = i;
