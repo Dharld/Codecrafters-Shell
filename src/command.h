@@ -26,11 +26,14 @@ typedef struct {
   // For redirection
   bool hasOutputRedirection;
   bool hasErrorRedirection;
+  bool appendOutput;
+  
   char *outputFile;
   char *errorOutputFile;
 } Command;
 
 // Function headers
+void freeCommand(Command* cmd);
 Command parseCommand(char* input);
 void executeCommand(Command cmd);
 char* checkCommand(char* cmdName);

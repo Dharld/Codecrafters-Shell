@@ -11,6 +11,40 @@
 bool continueRPL = true;
 int exitStatus = 1;
 
+// Add your cleanup function here
+void freeCommand(Command* cmd) {
+    // Free the output file path if it was set
+    if (cmd->outputFile != NULL) {
+        free(cmd->outputFile);
+        cmd->outputFile = NULL;
+    }
+    
+    // Free the error output file path if it was set
+    if (cmd->errorOutputFile != NULL) {
+        free(cmd->errorOutputFile);
+        cmd->errorOutputFile = NULL;
+    }
+    
+    // Free each argument string
+    if (cmd->args != NULL) {
+        for (int i = 0; i < cmd->argc; i++) {
+            if (cmd->args[i] != NULL) {
+                free(cmd->args[i]);
+            }
+        }
+        // Free the arguments array itself
+        free(cmd->args);
+        cmd->args = NULL;
+    }
+    
+    // Reset other fields
+    cmd->name = NULL;  // This was already freed as part of args
+    cmd->argc = 0;
+    cmd->type = CMD_NONE;
+    cmd->hasOutputRedirection = false;
+    cmd->hasErrorRedirection = false;
+}
+
 CommandType getCommandType(char* path) {
   if (path == NULL) {
     return CMD_NONE;
@@ -125,6 +159,7 @@ Command parseCommand(char* input) {
   cmd.outputFile = NULL;
   cmd.hasErrorRedirection = false;
   cmd.errorOutputFile = NULL;
+  cmd.appendOutput = false;
 
   char* tokens[MAX_TOKENS];
   int tokenCount = 0;
@@ -179,8 +214,19 @@ Command parseCommand(char* input) {
   
   // Check if there's a token for redirection
   int i = 0;
-  for(; i < tokenCount; i++) {
-    if (strcmp("2>", tokens[i]) == 0) {
+  for(;i < tokenCount; i++) {
+    if (strcmp("1>>", tokens[i]) == 0 || strcmp(">>", tokens[i]) == 0) {
+      cmd.appendOutput = true;
+      cmd.hasOutputRedirection = true;
+
+      // The next element is the output file
+      if (i + 1 < tokenCount) {
+        cmd.outputFile = strdup(tokens[i + 1]); 
+      }
+      
+      break;
+    }
+    else if (strcmp("2>", tokens[i]) == 0) {
       cmd.hasErrorRedirection = true;
       // The next element is the error output file
       if (i + 1 < tokenCount) {
@@ -269,7 +315,16 @@ int changeDirectory(char* path) {
 void executeWithRedirection(Command cmd, void (*executeFunc)(Command)) {
   if (cmd.hasOutputRedirection) {
       // Open the file for redirection
-      int fd = open(cmd.outputFile, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+      int flags = O_WRONLY | O_CREAT;
+
+      if (cmd.appendOutput) {
+        flags |= O_APPEND;
+      } else {
+        flags |= O_TRUNC;
+      }
+
+      int fd = open(cmd.outputFile, flags, 0644);
+      
       if (fd < 0) {
           perror("open");
           return;
