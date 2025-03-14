@@ -54,10 +54,10 @@ int main(int argc, char *argv[]) {
   // Wait for user input
   char input[100];
   int position = 0; // Handle the position of the cursor
+  enableRawMode();
 
   while (continueRPL) {
     // Enable raw mode for each character
-    enableRawMode();
     
     char c;
     if(read(STDIN_FILENO, &c, 1) == 1) {
