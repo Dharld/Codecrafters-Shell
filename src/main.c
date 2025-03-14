@@ -24,20 +24,22 @@ void disableRawMode() {
 
 void completeCommand(char* buffer, int* position) {
   char* builtins[] = {"echo", "exit", NULL};
-
+  
   // Iterate through every builtin command
   for (int i = 0; builtins[i] != NULL; i++) {
     if (strncmp(builtins[i], buffer, *position) == 0) {
-      // Clear the previous element
-      printf("\n");
-      printf("$ ");
-
+      // Move cursor to beginning of line and clear it
+      printf("\r");        // Carriage return moves to beginning of line
+      printf("\033[K");    // Clear line from cursor position to end
+      
+      // Replace buffer with completed command
       strcpy(buffer, builtins[i]);
-      strcat(buffer, " ");
+      strcat(buffer, " ");  // Add space after command
       *position = strlen(buffer);
-    
-      // Print the completed command
-      printf("%s", buffer);
+      
+      // Print prompt and completed command
+      printf("$ %s", buffer);
+      
       break;
     }
   }
