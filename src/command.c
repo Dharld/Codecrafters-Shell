@@ -1,11 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdbool.h>
-#include <unistd.h>   // for fork, execvp
-#include <sys/wait.h> // for waitpid
-#include <ctype.h>
-#include <fcntl.h>
 #include "command.h"
 
 bool continueRPL = true;

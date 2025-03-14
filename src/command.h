@@ -2,6 +2,14 @@
 #define COMMAND_H
 
 #include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>   // for fork, execvp
+#include <sys/wait.h> // for waitpid
+#include <ctype.h>
+#include <fcntl.h>
+#include "terminal.h"
 
 #define MAX_TOKENS 64 // Maximum number of tokens
 #define PATH_MAX 1024
