@@ -500,8 +500,17 @@ void executeCommand(Command cmd) {
   switch(cmd.type) {
     case CMD_EXIT:
       continueRPL = false;
-      exitStatus = atoi(cmd.args[1]);
-      exit(exitStatus);
+      
+      // If there's an argument, use it as the exit status
+      if (cmd.argc > 1) {
+        exitStatus = atoi(cmd.args[1]);
+      } else {
+        exitStatus = 0;  // Default to 0 if no status provided
+      }
+      
+      // Exit immediately without printing anything else
+      disableRawMode();  // Restore terminal mode
+      exit(exitStatus);  // This will terminate the program right away
       break;
 
     case CMD_ECHO:
