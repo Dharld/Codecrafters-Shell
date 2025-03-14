@@ -47,18 +47,16 @@ int main(int argc, char *argv[]) {
   // Flush after every printf
   setbuf(stdout, NULL);
   
-  tcgetattr(STDIN_FILENO, &original_termios);
-
-  printf("$ ");
-
-  // Wait for user input
-  char input[100];
-  int position = 0; // Handle the position of the cursor
+  // Enable raw mode once at the beginning
   enableRawMode();
-
+  atexit(disableRawMode);  // Make sure to restore terminal at exit
+  
+  printf("$ ");
+  
+  char input[100] = {0};
+  int position = 0;
+  
   while (continueRPL) {
-    // Enable raw mode for each character
-    
     char c;
     if(read(STDIN_FILENO, &c, 1) == 1) {
       if (c == TAB_KEY) {
@@ -67,11 +65,8 @@ int main(int argc, char *argv[]) {
       } 
       else if(c == '\n') {
         // Process the command when Enter is pressed
-        disableRawMode();
         printf("\n");
-
-        input[position] = '\0';
-
+        
         if (position > 0) {
           Command cmd = parseCommand(input);
           if (cmd.type == CMD_NONE) {
@@ -81,14 +76,13 @@ int main(int argc, char *argv[]) {
           }
           freeCommand(&cmd);
         }
-
+        
         // Reset for next command
         position = 0;
         input[0] = '\0';
-
+        
         if (continueRPL) {
           printf("$ ");
-          fflush(stdout);
         }
       }
       else if(c == 127) { // Backspace
@@ -100,18 +94,14 @@ int main(int argc, char *argv[]) {
       }
       else if (!iscntrl(c)) {  // Regular character
         if (position < sizeof(input) - 1) {
-            input[position++] = c;
-            input[position] = '\0';
-            printf("%c", c);  // Echo the character
+          input[position++] = c;
+          input[position] = '\0';
+          printf("%c", c);  // Echo the character
         }
       }
     }
-
-    disableRawMode();
   }
  
-
   return exitStatus;
 }
-
 
