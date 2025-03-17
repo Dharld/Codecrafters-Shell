@@ -25,9 +25,10 @@ int main(int argc, char *argv[]) {
         completeCommand(input, &position);
       } 
       else if(c == '\n') {
-        // Process the command when Enter is pressed
-        printf("\n");
-        
+        if (strcmp(input, "exit") != 0 && strncmp(input, "exit ", 5) != 0) {
+          printf("\n"); // Only print newline if not exit
+        }
+
         if (position > 0) {
           Command cmd = parseCommand(input);
           if (cmd.type == CMD_NONE) {
