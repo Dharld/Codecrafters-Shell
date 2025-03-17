@@ -491,18 +491,20 @@ void executeCd(Command cmd) {
 void executeCommand(Command cmd) {
   switch(cmd.type) {
     case CMD_EXIT:
-      continueRPL = false;
+      // Clear the screen or current line before exiting
+      printf("\r\033[K");  // Move to beginning of line and clear it
+      fflush(stdout);      // Ensure the clear command is processed
       
-      // If there's an argument, use it as the exit status
+      // Set exit status
       if (cmd.argc > 1) {
         exitStatus = atoi(cmd.args[1]);
       } else {
-        exitStatus = 0;  // Default to 0 if no status provided
+        exitStatus = 0;
       }
       
-      // Exit immediately without printing anything else
-      disableRawMode();  // Restore terminal mode
-      exit(exitStatus);  // This will terminate the program right away
+      // Restore terminal and exit
+      disableRawMode();
+      exit(exitStatus);
       break;
 
     case CMD_ECHO:
