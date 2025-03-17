@@ -4,7 +4,7 @@ bool continueRPL = true;
 int exitStatus = 1;
 
 // Add your cleanup function here
-void freeCommand(Command* cmd) {
+  void freeCommand(Command* cmd) {
     // Free the output file path if it was set
     if (cmd->outputFile != NULL) {
         free(cmd->outputFile);
@@ -35,6 +35,8 @@ void freeCommand(Command* cmd) {
     cmd->type = CMD_NONE;
     cmd->hasOutputRedirection = false;
     cmd->hasErrorRedirection = false;
+    cmd->appendOutput = false;
+    cmd->appendError = false;
 }
 
 CommandType getCommandType(char* path) {
@@ -52,10 +54,14 @@ CommandType getCommandType(char* path) {
   } else if (strcmp("cd", path) == 0) {
     return CMD_CD;
   } else {
-    return CMD_EXTERNAL;
+    char* fullPath = checkCommand(path);
+    if (fullPath != NULL) {
+      free(fullPath);
+      return CMD_EXTERNAL;
+    }
+    return CMD_NONE; // Or a new CMD_INVALID type
   }
 }
-
 void handleSingleQuote(int* index, char* input, char** tokens, int* tokenCount) {
     // Skip the start character
     (*index)++;  // Need parentheses around *index

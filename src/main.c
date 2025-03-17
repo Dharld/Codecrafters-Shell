@@ -37,8 +37,7 @@ int main(int argc, char *argv[]) {
             executeCommand(cmd);
           }
           freeCommand(&cmd);
-        }
-        
+        }        
         // Reset for next command
         position = 0;
         input[0] = '\0';
