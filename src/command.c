@@ -264,25 +264,25 @@ char* checkCommand(char* cmdName) {
     return NULL;
   }
 
-  char* pathCopy = strdup(path);
-  char* dir = strtok(pathCopy, ":");
+  char* pathcopy = strdup(path);
+  char* dir = strtok(pathcopy, ":");
 
   while (dir != NULL) {
-    char fullPath[1024];
-    snprintf(fullPath, sizeof(fullPath), "%s/%s", dir, cmdName);
-    FILE* file = fopen(fullPath, "r");
+    char fullpath[1024];
+    snprintf(fullpath, sizeof(fullpath), "%s/%s", dir, cmdName);
+    FILE* file = fopen(fullpath, "r");
 
     if (file != NULL) {
       fclose(file);
-      free(pathCopy);
-      char* result = strdup(fullPath);
+      free(pathcopy);
+      char* result = strdup(fullpath);
       return result;
     }
 
     dir = strtok(NULL, ":");
   }
 
-  free(pathCopy);
+  free(pathcopy);
   return NULL;
 }
 
