@@ -240,6 +240,7 @@ Command parseCommand(char* input) {
       if (i + 1 < tokenCount) {
         cmd.outputFile = strdup(tokens[i + 1]);
       }
+
       break;
     }
   }
@@ -319,10 +320,10 @@ void executeWithRedirection(Command cmd, void (*executeFunc)(Command)) {
       }
 
       int fd = open(cmd.outputFile, flags, 0644);
-      
+
       if (fd < 0) {
-          perror("open");
-          return;
+        perror("open");
+        return;
       }
       
       // Save original stdout

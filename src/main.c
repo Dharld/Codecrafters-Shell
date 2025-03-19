@@ -28,7 +28,7 @@ int main(int argc, char *argv[]) {
         // if (strcmp(input, "exit") != 0 && strncmp(input, "exit ", 5) != 0) {
         //   printf("\n"); // Only print newline if not exit
         // }
-
+        printf("\n"); // Go to the next line
         if (position > 0) {
           Command cmd = parseCommand(input);
           if (cmd.type == CMD_NONE) {
