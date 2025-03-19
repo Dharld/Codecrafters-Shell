@@ -16,6 +16,7 @@ void disableRawMode() {
 
 void completeCommand(char* buffer, int* position) {
   char* builtins[] = {"echo", "exit", NULL};
+  bool foundMatch = false; // To check for a match
   
   // Create a copy of the buffer
   char fullBuffer[1024];
@@ -52,11 +53,17 @@ void completeCommand(char* buffer, int* position) {
 
       *position = strlen(buffer);
       
+      foundMatch = true;
       // Print prompt and completed command
       printf("$ %s", buffer);
       
       break;
     }
+  }
+
+  if(foundMatch) {
+    printf("\a");
+    fflush(stdout);
   }
 }
 

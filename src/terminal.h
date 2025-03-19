@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <ctype.h>
 #include <string.h>
+#include <stdbool.h>
 
 
 #define TAB_KEY 9
