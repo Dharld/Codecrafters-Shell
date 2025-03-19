@@ -61,7 +61,7 @@ void completeCommand(char* buffer, int* position) {
     }
   }
 
-  if(foundMatch) {
+  if(!foundMatch) {
     printf("\a");
     fflush(stdout);
   }
