@@ -46,7 +46,7 @@ void completeCommand(char* buffer, int* position) {
       // printf("This is your buffer: %s\n", buffer);
 
       // If there's no arguments
-      if (args == '\0') {
+      if (args[0] == '\0') {
         strcat(buffer, " ");  // Add space after command
       }
 
