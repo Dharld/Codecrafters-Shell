@@ -88,7 +88,7 @@ void completeCommand(char* buffer, int* position) {
             bool isDuplicate = false;
 
             for (int i = 0; i < matchCount; i++) {
-              if (matches[i] == entry->d_name) {
+              if (strcmp(matches[i], entry->d_name) == 0) {
                 isDuplicate = true;
                 break;
               }
@@ -108,7 +108,18 @@ void completeCommand(char* buffer, int* position) {
     
     free(pathCopy);
   }
-  
+ 
+  // Comparison function for qsort
+  int compare_strings(const void* a, const void* b) {
+      return strcmp(*(const char**)a, *(const char**)b);
+  }
+
+  // In your completeCommand function, after collecting all matches:
+  if (matchCount > 1) {
+      // Sort matches alphabetically
+      qsort(matches, matchCount, sizeof(char*), compare_strings);
+  }
+
   if (matchCount == 0) {
     // No matches found, ring the bell
     printf("\a");
