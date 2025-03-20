@@ -14,7 +14,35 @@ void disableRawMode() {
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &original_termios);
 }
 
-void complete(char* buffer, char* text, char* args, int* position) {
+char* findLongestCommonPrefix(char** matches, int matchCount) {
+  if (matchCount == 0) return NULL;
+  if (matchCount == 1) return strdup(matches[0]);
+  
+  // Start with the first match as the potential prefix
+  char* prefix = strdup(matches[0]);
+  int prefixLen = strlen(prefix);
+  
+  // Compare with all other matches
+  for (int i = 1; i < matchCount; i++) {
+      int j;
+      // Find how much of the current prefix matches this word
+      for (j = 0; j < prefixLen; j++) {
+        if (prefix[j] != matches[i][j]) {
+          break;
+        }
+      }
+      // Shorten prefix to the matching part
+      prefix[j] = '\0';
+      prefixLen = j;
+      
+      // If prefix became empty, no common prefix exists
+      if (prefixLen == 0) break;
+  }
+  
+  return prefix;
+}
+
+void complete(char* buffer, char* text, char* args, int* position, bool addSpace) {
    // move cursor to beginning of line and clear it
   printf("\r");        // carriage return moves to beginning of line
   printf("\033[K");    // clear line from cursor position to end
@@ -26,7 +54,7 @@ void complete(char* buffer, char* text, char* args, int* position) {
   // printf("this is your buffer: %s\n", buffer);
 
   // if there's no arguments
-  if (args[0] == '\0') {
+  if (args[0] == '\0' && addSpace) {
     strcat(buffer, " ");  // add space after command
   }
 
@@ -128,29 +156,37 @@ void completeCommand(char* buffer, int* position) {
   } 
   else if (matchCount == 1) {
     // Exactly one match, complete it
-    complete(buffer, matches[0], args, position);
+    complete(buffer, matches[0], args, position, true);
     tabPressed = false;  // Reset tab state
   }
   else {
-    // Multiple matches
-    if (!tabPressed) {
-      // First tab press with multiple matches - just ring the bell
-      printf("\a");
-      fflush(stdout);
-      tabPressed = true;  // Remember tab was pressed
-    } else {
-      // Second tab press - show all possible completions
-      printf("\n");
-      
-      // Display all matches with double spaces between them
-      for (int i = 0; i < matchCount; i++) {
-        printf("%s  ", matches[i]);
-      }
-      
-      // Return to prompt with original input
-      printf("\n$ %s", buffer);
-      tabPressed = false;  // Reset tab state
+    // Find the longest common prefix
+    char* commonPrefix = findLongestCommonPrefix(matches, matchCount);
+    
+    // If common prefix is longer than what user typed, complete to that
+    if (strlen(commonPrefix) > cmdLength) {
+      complete(buffer, commonPrefix, args, position, false);
+      free(commonPrefix);
+      tabPressed = false;  // Reset tab state since we did a completion
     }
+    else {
+      // If no further completion possible, handle as before
+      free(commonPrefix);
+      if (!tabPressed) {
+        printf("\a");
+        fflush(stdout);
+        tabPressed = true;
+      } 
+      else {
+        // Show all possibilities
+        printf("\n");
+        for (int i = 0; i < matchCount; i++) {
+            printf("%s  ", matches[i]);
+        }
+        printf("\n$ %s", buffer);
+        tabPressed = false;
+      }
+    }  
   }
   
   // Free allocated memory for matches
