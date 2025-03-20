@@ -85,8 +85,19 @@ void completeCommand(char* buffer, int* position) {
           snprintf(fullPath, sizeof(fullPath), "%s/%s", directoryPath, entry->d_name);
           
           if (access(fullPath, X_OK) == 0) {
-            matches[matchCount++] = strdup(entry->d_name);
-            if (matchCount >= 256) break;  // Safety check
+            bool isDuplicate = false;
+
+            for (int i = 0; i < matchCount; i++) {
+              if (matches[i] == entry->d_name) {
+                isDuplicate = true;
+                break;
+              }
+            }
+
+            if (!isDuplicate) {
+              matches[matchCount++] = strdup(entry->d_name);
+              if (matchCount >= 256) break;
+            }
           }
         }
       }
